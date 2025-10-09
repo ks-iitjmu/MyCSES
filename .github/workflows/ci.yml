@@ -1,0 +1,89 @@
+name: CI - Code Quality Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  compile-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Install C++ compiler
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y g++ build-essential
+        
+    - name: Check C++ version
+      run: g++ --version
+      
+    - name: Compile Solutions
+      run: |
+        echo "Checking compilation of C++ solutions..."
+        
+        # Function to compile a single file
+        compile_file() {
+          local file="$1"
+          echo "Compiling: $file"
+          if g++ -std=c++17 -Wall -Wextra -O2 -o /tmp/solution "$file"; then
+            echo "✅ $file compiled successfully"
+            rm -f /tmp/solution
+          else
+            echo "❌ $file failed to compile"
+            exit 1
+          fi
+        }
+        
+        # Find and compile all .cpp files
+        find . -name "*.cpp" -type f | while read -r file; do
+          compile_file "$file"
+        done
+        
+    - name: Check File Naming Convention
+      run: |
+        echo "Checking file naming conventions..."
+        
+        # Check if all cpp files use snake_case
+        invalid_files=$(find . -name "*.cpp" -type f | grep -E '[A-Z]|[[:space:]]' || true)
+        
+        if [ -n "$invalid_files" ]; then
+          echo "❌ Files with invalid naming convention found:"
+          echo "$invalid_files"
+          echo "Please use snake_case naming (e.g., weird_algorithm.cpp)"
+          exit 1
+        else
+          echo "✅ All files follow snake_case naming convention"
+        fi
+        
+    - name: Check Required Template
+      run: |
+        echo "Checking for required template components..."
+        
+        check_template() {
+          local file="$1"
+          
+          if ! grep -q "#include <bits/stdc++.h>" "$file"; then
+            echo "❌ $file missing required header: #include <bits/stdc++.h>"
+            return 1
+          fi
+          
+          if ! grep -q "using namespace std;" "$file"; then
+            echo "❌ $file missing: using namespace std;"
+            return 1
+          fi
+          
+          if ! grep -q "ios::sync_with_stdio" "$file"; then
+            echo "⚠️  $file might be missing fast I/O optimization"
+          fi
+          
+          echo "✅ $file template check passed"
+        }
+        
+        # Check all cpp files for template compliance
+        find . -name "*.cpp" -type f | while read -r file; do
+          check_template "$file"
+        done

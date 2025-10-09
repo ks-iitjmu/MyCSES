@@ -1,10 +1,35 @@
 # MyCSES - CSES Problem Set Solutions
 
-This repository contains my solutions to problems from the [CSES Problem Set](https://cses.fi/problemset/), implemented in C++. The CSES Problem Set is a collection of competitive programming practice problems that cover various algorithmic topics.
+[![Hacktoberfest](https://img.shields.io/badge/Hacktoberfest-2025-blueviolet.svg)](https://hacktoberfest.digitalocean.com/)
+[![Contributions Welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](CONTRIBUTING.md)
+[![Code of Conduct](https://img.shields.io/badge/code%20of-conduct-ff69b4.svg?style=flat)](CODE_OF_CONDUCT.md)
+[![C++](https://img.shields.io/badge/language-C%2B%2B-blue.svg)](https://isocpp.org/)
 
-## 👨‍💻 Author
+This repository contains solutions to problems from the [CSES Problem Set](https://cses.fi/problemset/), implemented in C++. The CSES Problem Set is a collection of competitive programming practice problems that cover various algorithmic topics.
+
+**🎃 Participating in Hacktoberfest 2025!** We welcome quality contributions from the community. Check out our [Contributing Guidelines](CONTRIBUTING.md) to get started.
+
+## 👨‍💻 Maintainer
 **Kunal Sharma**  
 IIT Jammu
+
+## 🤝 Contributing
+
+We encourage contributions from the competitive programming community! Whether you're a beginner or an expert, there are many ways to contribute:
+
+- 🐛 **Report bugs** or suggest improvements
+- 💡 **Add new problem solutions** 
+- 📚 **Improve documentation** 
+- 🎯 **Optimize existing solutions**
+- ✨ **Add explanatory comments** to complex algorithms
+
+**New to open source?** Look for issues labeled [`good first issue`](../../labels/good%20first%20issue) to get started!
+
+👉 **Read our [Contributing Guide](CONTRIBUTING.md)** for detailed instructions on how to contribute.
+
+## 📋 Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to the maintainers.
 
 ## 📁 Repository Structure
 
@@ -114,6 +139,33 @@ Each solution follows a structured approach:
 - ✅ Dynamic Programming: Foundation problems completed
 - ✅ Mathematics: Advanced mathematical concepts covered
 
+## 🌟 Contributors
+
+Thanks to all the amazing contributors who have helped improve this repository!
+
+<!-- Contributors will be listed here automatically -->
+
+Want to contribute? Check out our [Contributing Guidelines](CONTRIBUTING.md)!
+
+## 🎃 Hacktoberfest
+
+This repository participates in **Hacktoberfest**! We welcome quality contributions during October and throughout the year.
+
+### How to participate:
+1. Look for issues labeled `hacktoberfest`
+2. Check out `good first issue` labels for beginner-friendly tasks
+3. Read our [Contributing Guidelines](CONTRIBUTING.md)
+4. Submit quality pull requests
+5. Help review other contributions
+
+### Contribution Ideas:
+- Solve new CSES problems
+- Optimize existing solutions
+- Add detailed comments and explanations
+- Improve documentation
+- Add test cases
+- Create problem difficulty classifications
+
 ## 🔗 Useful Links
 
 - [CSES Problem Set](https://cses.fi/problemset/)
@@ -126,6 +178,27 @@ Each solution follows a structured approach:
 - Code follows standard competitive programming conventions
 - All solutions have been tested against CSES judge system
 
+## 🚀 Getting Started for Contributors
+
+1. **Fork this repository**
+2. **Clone your fork**: `git clone https://github.com/YOUR_USERNAME/MyCSES.git`
+3. **Create a branch**: `git checkout -b feature/problem-name`
+4. **Add your solution** following our [guidelines](CONTRIBUTING.md)
+5. **Test thoroughly** against CSES judge
+6. **Submit a pull request**
+
+## 📞 Support
+
+- 🐛 Found a bug? [Create an issue](../../issues/new)
+- 💡 Have a suggestion? [Start a discussion](../../discussions)
+- 📧 Need help? Check our [Contributing Guide](CONTRIBUTING.md)
+
+## 📜 License
+
+This project is open source and available under the [MIT License](LICENSE).
+
 ---
 
-*Feel free to explore the solutions and use them for learning purposes. Happy coding! 🚀*
+*Feel free to explore the solutions, contribute, and use them for learning purposes. Happy coding! 🚀*
+
+**⭐ Star this repository if you find it helpful!**
