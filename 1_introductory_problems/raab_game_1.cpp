@@ -1,104 +1,68 @@
-// Kunal Sharma IIT Jammu
+/*
+Problem: Raab Game I
+Category: Greedy / Simulation
+Difficulty: Medium
+Time Complexity: O(n^2)
+Space Complexity: O(n)
+
+Approach:
+- Check if a + b <= n (feasible)
+- Greedily assign wins for each player using largest vs smallest remaining cards
+- Fill remaining cards arbitrarily to produce a valid game sequence
+*/
+
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long ll;
-typedef vector<ll> vll;
-typedef set<ll> ssll;
-#define pb push_back
-#define er erase
-#define ins insert
-#define cnt count
-#define up upper_bound
-#define lb lower_bound
-#define bg begin()
-#define ed end()
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-int main()
-{
-    ios::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
-    ll t;
+    int t;
     cin >> t;
-    while (t--)
-    {
-        ll n, a, b;
+    while(t--) {
+        int n, a, b;
         cin >> n >> a >> b;
-        if (a + b > n)
-        {
+
+        if (a + b > n) {
             cout << "NO\n";
             continue;
         }
-        vll p1(n);
-        for (ll i = 0; i < n; i++)
-            p1[i] = i + 1;
-        ssll s;
-        for (ll i = 1; i <= n; i++)
-            s.ins(i);
-        vll p2(n, 0);
-        ll remB = b;
-        for (ll i = 0; i < n && remB > 0; i++)
-        {
-            auto it = s.up(p1[i]);
-            if (it != s.ed)
-            {
-                p2[i] = *it;
-                s.er(it);
-                remB--;
-            }
+
+        vector<int> p1, p2;
+        vector<int> remaining1, remaining2;
+
+        // Initial card sets
+        for(int i=1;i<=n;i++) remaining1.push_back(i);
+        for(int i=1;i<=n;i++) remaining2.push_back(i);
+
+        // Assign 'a' points to player 1
+        for(int i=0;i<a;i++) {
+            p1.push_back(n - i);          // largest cards of player 1
+            p2.push_back(i + 1);          // smallest cards of player 2
+            remaining1.erase(remove(remaining1.begin(), remaining1.end(), n - i), remaining1.end());
+            remaining2.erase(remove(remaining2.begin(), remaining2.end(), i + 1), remaining2.end());
         }
-        if (remB > 0)
-        {
-            cout << "NO\n";
-            continue;
+
+        // Assign 'b' points to player 2
+        for(int i=0;i<b;i++) {
+            p1.push_back(remaining1[i]);          // smallest remaining cards of player1
+            p2.push_back(n - i);                  // largest cards of player2
         }
-        ll remA = a;
-        for (ll i = n - 1; i >= 0 && remA > 0; i--)
-        {
-            if (p2[i] != 0)
-                continue;
-            auto it = s.lb(p1[i]);
-            if (it != s.bg)
-            {
-                --it;
-                if (*it < p1[i])
-                {
-                    p2[i] = *it;
-                    s.er(it);
-                    remA--;
-                }
-            }
+
+        // Fill remaining cards arbitrarily
+        int r1start = b;
+        for(int i=r1start;i<remaining1.size();i++) {
+            p1.push_back(remaining1[i]);
+            p2.push_back(remaining2[i - b]);
         }
-        if (remA > 0)
-        {
-            cout << "NO\n";
-            continue;
-        }
-        for (ll i = 0; i < n; i++)
-        {
-            if (p2[i] != 0)
-                continue;
-            auto it_eq = s.find(p1[i]);
-            if (it_eq != s.ed)
-            {
-                p2[i] = *it_eq;
-                s.er(it_eq);
-            }
-            else
-            {
-                auto it_any = s.bg;
-                p2[i] = *it_any;
-                s.er(it_any);
-            }
-        }
+
         cout << "YES\n";
-        for (ll i = 0; i < n; i++)
-            cout << p1[i] << ' ';
-        cout << '\n';
-        for (ll i = 0; i < n; i++)
-            cout << p2[i] << ' ';
-        cout << '\n';
+        for(int x : p1) cout << x << " ";
+        cout << "\n";
+        for(int x : p2) cout << x << " ";
+        cout << "\n";
     }
+
     return 0;
 }
