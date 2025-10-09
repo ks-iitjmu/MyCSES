@@ -1,4 +1,6 @@
 // Kunal Sharma IIT Jammu
+
+
 #include <bits/stdc++.h>
 using namespace std;
 
@@ -27,4 +29,5 @@ int main()
     cout << max(sum, 2 * max_time) << "\n";
 
     return 0;
+
 }
