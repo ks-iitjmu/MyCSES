@@ -216,7 +216,7 @@ jobs:
           
           let message = "";
           
-          if (github.event_name === 'issues') {
+          if (context.eventName === 'issues') {
             if (isFirstTime) {
               message = "## Welcome to MyCSES! 🎉\n\n" +
                 "Thank you for your interest in contributing to our CSES solutions repository!\n\n" +
@@ -239,7 +239,7 @@ jobs:
                 body: message
               });
             }
-          } else if (github.event_name === 'pull_request') {
+          } else if (context.eventName === 'pull_request') {
             // Always send thank you message for PRs
             if (isFirstTime) {
               message = "## 🎉 Welcome to MyCSES!\n\n" +
