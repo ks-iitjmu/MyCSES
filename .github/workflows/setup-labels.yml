@@ -147,6 +147,23 @@ jobs:
               name: 'category: advanced',
               color: 'C5DEF5',
               description: 'Advanced technique problems'
+            },
+            
+            // Process labels
+            {
+              name: 'needs: template completion',
+              color: 'F9D71C',
+              description: 'PR needs to complete the template properly'
+            },
+            {
+              name: 'auto-labeled',
+              color: '0366D6',
+              description: 'Automatically labeled by workflow'
+            },
+            {
+              name: 'automation-monitoring',
+              color: 'B60205',
+              description: 'Issues related to automation system monitoring'
             }
           ];
           

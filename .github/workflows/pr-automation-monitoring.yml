@@ -1,0 +1,222 @@
+name: PR Automation Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Run every 6 hours
+  workflow_dispatch:  # Allow manual trigger
+
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
+jobs:
+  monitor-automation:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check Recent PRs for Proper Automation
+      uses: actions/github-script@v7
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { owner, repo } = context.repo;
+          
+          // Get recent PRs from the last 24 hours
+          const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          
+          const { data: recentPRs } = await github.rest.pulls.list({
+            owner,
+            repo,
+            state: 'all',
+            sort: 'created',
+            direction: 'desc',
+            per_page: 50
+          });
+          
+          const recentPRsFiltered = recentPRs.filter(pr => 
+            new Date(pr.created_at) > oneDayAgo
+          );
+          
+          console.log(`🔍 Found ${recentPRsFiltered.length} PRs created in the last 24 hours`);
+          
+          let issuesFound = [];
+          
+          for (const pr of recentPRsFiltered) {
+            console.log(`\n📝 Checking PR #${pr.number} by ${pr.user.login}`);
+            
+            // Get labels for this PR
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number: pr.number
+            });
+            
+            const labelNames = labels.map(l => l.name);
+            console.log(`   Labels: ${labelNames.join(', ')}`);
+            
+            // Check if it has hacktoberfest label
+            const hasHacktoberfestLabel = labelNames.includes('hacktoberfest');
+            const hasAnyAutoLabels = labelNames.some(name => 
+              name.startsWith('category:') || 
+              ['enhancement', 'bug', 'documentation', 'good first issue', 'help wanted'].includes(name)
+            );
+            
+            // Get comments to see if automation posted
+            const { data: comments } = await github.rest.issues.listComments({
+              owner,
+              repo,
+              issue_number: pr.number
+            });
+            
+            const hasAutomationComment = comments.some(comment => 
+              comment.user.type === 'Bot' && 
+              (comment.body.includes('Welcome to MyCSES') || 
+               comment.body.includes('Thank you for contributing'))
+            );
+            
+            // Identify issues
+            let prIssues = [];
+            
+            if (!hasHacktoberfestLabel) {
+              prIssues.push('Missing hacktoberfest label');
+            }
+            
+            if (!hasAnyAutoLabels) {
+              prIssues.push('No automatic labels applied');
+            }
+            
+            if (!hasAutomationComment) {
+              prIssues.push('No welcome/automation comment');
+            }
+            
+            if (prIssues.length > 0) {
+              issuesFound.push({
+                number: pr.number,
+                author: pr.user.login,
+                title: pr.title,
+                issues: prIssues,
+                created: pr.created_at
+              });
+            }
+          }
+          
+          // Report findings
+          if (issuesFound.length > 0) {
+            console.log(`\n❌ Found ${issuesFound.length} PRs with automation issues:`);
+            
+            for (const issue of issuesFound) {
+              console.log(`\n🔴 PR #${issue.number} - "${issue.title}"`);
+              console.log(`   Author: ${issue.author}`);
+              console.log(`   Created: ${issue.created}`);
+              console.log(`   Issues: ${issue.issues.join(', ')}`);
+            }
+            
+            // Try to fix issues by running automation manually
+            console.log('\n🔧 Attempting to fix issues...');
+            
+            for (const issue of issuesFound) {
+              try {
+                const prNumber = issue.number;
+                
+                // Get PR details
+                const { data: pr } = await github.rest.pulls.get({
+                  owner,
+                  repo,
+                  pull_number: prNumber
+                });
+                
+                // Get current labels
+                const { data: currentLabels } = await github.rest.issues.listLabelsOnIssue({
+                  owner,
+                  repo,
+                  issue_number: prNumber
+                });
+                
+                const currentLabelNames = currentLabels.map(l => l.name);
+                
+                // Apply missing hacktoberfest label
+                if (!currentLabelNames.includes('hacktoberfest')) {
+                  await github.rest.issues.addLabels({
+                    owner,
+                    repo,
+                    issue_number: prNumber,
+                    labels: ['hacktoberfest']
+                  });
+                  console.log(`   ✅ Added hacktoberfest label to PR #${prNumber}`);
+                }
+                
+                // Add a monitoring comment explaining the manual intervention
+                const monitoringComment = `## 🔧 Automation Recovery\n\n` +
+                  `Our monitoring system detected that automated labeling may have missed this PR. ` +
+                  `The necessary labels have now been applied manually.\n\n` +
+                  `**What was fixed:**\n${issue.issues.map(i => `- ${i}`).join('\n')}\n\n` +
+                  `If you continue to experience issues with automation, please let us know by creating an issue. ` +
+                  `Thank you for your contribution to MyCSES! 🚀\n\n` +
+                  `---\n*This message was generated by automated monitoring.*`;
+                
+                await github.rest.issues.createComment({
+                  owner,
+                  repo,
+                  issue_number: prNumber,
+                  body: monitoringComment
+                });
+                
+                console.log(`   ✅ Added recovery comment to PR #${prNumber}`);
+                
+              } catch (error) {
+                console.error(`   ❌ Failed to fix PR #${issue.number}:`, error);
+              }
+            }
+          } else {
+            console.log('\n✅ All recent PRs have proper automation applied!');
+          }
+          
+          // Generate summary statistics
+          const totalPRs = recentPRsFiltered.length;
+          const automatedPRs = totalPRs - issuesFound.length;
+          const automationSuccessRate = totalPRs > 0 ? Math.round((automatedPRs / totalPRs) * 100) : 100;
+          
+          console.log(`\n📊 Automation Summary (Last 24h):`);
+          console.log(`   Total PRs: ${totalPRs}`);
+          console.log(`   Properly Automated: ${automatedPRs}`);
+          console.log(`   Success Rate: ${automationSuccessRate}%`);
+          
+          // If success rate is low, create an issue
+          if (totalPRs > 0 && automationSuccessRate < 80) {
+            const { data: existingIssues } = await github.rest.issues.listForRepo({
+              owner,
+              repo,
+              labels: 'automation-monitoring',
+              state: 'open'
+            });
+            
+            if (existingIssues.length === 0) {
+              const automationIssue = `## 🚨 PR Automation Success Rate Alert\n\n` +
+                `Our monitoring system has detected a low success rate for PR automation.\n\n` +
+                `**Statistics (Last 24h):**\n` +
+                `- Total PRs: ${totalPRs}\n` +
+                `- Properly Automated: ${automatedPRs}\n` +
+                `- Success Rate: ${automationSuccessRate}%\n\n` +
+                `**Issues Found:**\n` +
+                issuesFound.map(i => `- PR #${i.number}: ${i.issues.join(', ')}`).join('\n') + '\n\n' +
+                `**Possible Causes:**\n` +
+                `- GitHub Actions permissions issues\n` +
+                `- Workflow file errors\n` +
+                `- API rate limiting\n` +
+                `- Repository settings changes\n\n` +
+                `**Action Required:**\n` +
+                `Please investigate the GitHub Actions logs and fix any issues with the automation workflows.\n\n` +
+                `---\n*This issue was created automatically by monitoring system.*`;
+              
+              await github.rest.issues.create({
+                owner,
+                repo,
+                title: `🚨 PR Automation Issues Detected - ${automationSuccessRate}% Success Rate`,
+                body: automationIssue,
+                labels: ['automation-monitoring', 'bug', 'help wanted']
+              });
+              
+              console.log('📋 Created monitoring issue due to low success rate');
+            }
+          }
