@@ -1,19 +1,18 @@
 /*
-Problem: Static Range Sum Queries (sum of values in [a, b] for multiple queries)
-Input:
-- n (number of values), q (number of queries)
-- array x[1..n]
-- q lines of queries with integers a, b (1 <= a <= b <= n)
-Output:
-- For each query, print sum_{i=a..b} x[i]
-Constraints:
-- 1 <= n, q <= 2 * 10^5
-- 1 <= x_i <= 1e9
+Problem: Static Range Sum Queries
+Category: Range Queries
+Difficulty: Medium
+Time Complexity: O(n + q)
+Space Complexity: O(n)
+
 Approach:
-- Build 1-indexed prefix sums p where p[i] = sum of first i elements
-- Answer each query in O(1): p[b] - p[a-1]
-Notes:
-- Use 64-bit integers (long long) for sums to handle up to ~2e14.
+- Build a 1-indexed prefix sum array `pref` where pref[i] = sum of first i elements
+- Answer each query in O(1) using: sum(a..b) = pref[b] - pref[a-1]
+
+Key Insights:
+- Use long long for sums to handle large numbers (~2e14)
+- 1-indexed array simplifies query computation
+- Efficient for large n, q (up to 2*10^5)
 */
 
 #include <bits/stdc++.h>
@@ -24,9 +23,9 @@ int main() {
     cin.tie(nullptr);
 
     int n, q;
-    if (!(cin >> n >> q)) return 0;
+    cin >> n >> q;
 
-    vector<long long> pref(n + 1, 0);
+    vector<long long> pref(n + 1, 0);  // 1-indexed prefix sums
     for (int i = 1; i <= n; ++i) {
         long long x;
         cin >> x;
@@ -38,5 +37,6 @@ int main() {
         cin >> a >> b;
         cout << (pref[b] - pref[a - 1]) << '\n';
     }
+
     return 0;
 }
