@@ -99,174 +99,23 @@ jobs:
             console.error('Error adding labels:', error);
           }
 
-    - name: Add Hacktoberfest labels to PRs
+    - name: Add thank you message to PR
       if: github.event_name == 'pull_request'
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          // Get current date to check if we're in October
-          const now = new Date();
-          const currentMonth = now.getMonth() + 1;
-          const currentYear = now.getFullYear();
-          
-          const isHacktoberfestSeason = currentMonth === 10;
-          
-          // Labels to add to PRs
-          const labelsToAdd = ['hacktoberfest'];
-          
-          if (isHacktoberfestSeason) {
-            labelsToAdd.push(`hacktoberfest_${currentYear}`);
-          }
-          
-          // Check PR title and body for type of contribution
-          const prTitle = context.payload.pull_request.title.toLowerCase();
-          const prBody = (context.payload.pull_request.body || '').toLowerCase();
-          const combinedText = prTitle + ' ' + prBody;
-          
-          // Auto-add 'good first issue' for beginner-friendly problems
-          const beginnerKeywords = [
-            'introductory', 'basic', 'easy', 'beginner', 'simple', 'hello world',
-            'missing number', 'weird algorithm', 'repetitions', 'increasing array'
-          ];
-          
-          if (beginnerKeywords.some(keyword => combinedText.includes(keyword))) {
-            labelsToAdd.push('good first issue');
-          }
-          
-          // Auto-add 'help wanted' for complex problems
-          const complexKeywords = [
-            'hard', 'difficult', 'complex', 'advanced', 'optimization needed',
-            'graph', 'tree', 'geometry', 'string algorithm'
-          ];
-          
-          if (complexKeywords.some(keyword => combinedText.includes(keyword))) {
-            labelsToAdd.push('help wanted');
-          }
-          
-          // Determine PR type and add appropriate labels
-          if (combinedText.includes('bug') || combinedText.includes('fix')) {
-            labelsToAdd.push('bug');
-          } else if (combinedText.includes('new') || combinedText.includes('add solution')) {
-            labelsToAdd.push('enhancement');
-          } else if (combinedText.includes('documentation') || combinedText.includes('readme')) {
-            labelsToAdd.push('documentation');
-          }
-          
-          // Add category-specific labels
-          const categoryMap = {
-            'introductory': 'category: introductory',
-            'sorting': 'category: sorting-searching',
-            'searching': 'category: sorting-searching',
-            'dynamic programming': 'category: dp',
-            'dp': 'category: dp',
-            'graph': 'category: graph',
-            'tree': 'category: tree',
-            'mathematics': 'category: mathematics',
-            'math': 'category: mathematics',
-            'string': 'category: string',
-            'geometry': 'category: geometry'
-          };
-          
-          for (const [keyword, label] of Object.entries(categoryMap)) {
-            if (combinedText.includes(keyword)) {
-              labelsToAdd.push(label);
-              break; // Only add one category label
-            }
-          }
+          const message = "Thank you for your contribution! 🙏";
           
           try {
-            await github.rest.issues.addLabels({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.payload.pull_request.number,
-              labels: labelsToAdd
-            });
-            
-            console.log(`Added labels to PR: ${labelsToAdd.join(', ')}`);
-          } catch (error) {
-            console.error('Error adding labels to PR:', error);
-          }
-
-    - name: Add thank you message
-      uses: actions/github-script@v7
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        script: |
-          const now = new Date();
-          const currentMonth = now.getMonth() + 1;
-          const currentYear = now.getFullYear();
-          
-          // Check if this is the user's first contribution
-          const { data: issues } = await github.rest.issues.listForRepo({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            creator: context.payload.sender.login,
-            state: 'all'
-          });
-          
-          const { data: prs } = await github.rest.pulls.list({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            creator: context.payload.sender.login,
-            state: 'all'
-          });
-          
-          const isFirstTime = (issues.length + prs.length) <= 1;
-          
-          let message = "";
-          
-          if (context.eventName === 'issues') {
-            if (isFirstTime) {
-              message = "## Welcome to MyCSES! 🎉\n\n" +
-                "Thank you for your interest in contributing to our CSES solutions repository!\n\n" +
-                "### 🎃 Hacktoberfest Participant\n" +
-                "This issue has been automatically labeled for **Hacktoberfest**. We're excited to have you participate!\n\n" +
-                "### 📚 Getting Started\n" +
-                "- Check out our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
-                "- Read our [Code of Conduct](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CODE_OF_CONDUCT.md)\n" +
-                "- Browse existing solutions for reference\n\n" +
-                "### 🏷️ Labels Added\n" +
-                "Your issue has been automatically labeled. If you think any labels need adjustment, please let us know!\n\n" +
-                "Happy coding! 🚀";
-            }
-            
-            if (message) {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body: message
-              });
-            }
-          } else if (context.eventName === 'pull_request') {
-            // Always send thank you message for PRs
-            if (isFirstTime) {
-              message = "## 🎉 Welcome to MyCSES!\n\n" +
-                "Thank you for your first contribution to our CSES solutions repository!\n\n";
-            } else {
-              message = "## 🙏 Thank you for contributing!\n\n" +
-                "We appreciate your continued contributions to our CSES solutions repository!\n\n";
-            }
-            
-            message += "### 🎃 Hacktoberfest\n" +
-              "This PR has been automatically labeled for **Hacktoberfest** participation.\n\n" +
-              "### 📚 Guidelines\n" +
-              "- Please ensure your solution is tested on CSES judge\n" +
-              "- Follow our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
-              "- Include time/space complexity analysis in your description\n\n" +
-              "### 🏷️ Automatic Labels\n" +
-              "Your PR has been automatically labeled based on its content. If you think any labels need adjustment, please let us know!\n\n" +
-              "### 🔄 Next Steps\n" +
-              "- A maintainer will review your PR soon\n" +
-              "- Address any feedback or requested changes\n" +
-              "- Once approved and merged, your contribution will be part of the repository!\n\n" +
-              "Thank you for helping the competitive programming community! 🚀";
-            
             await github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.payload.pull_request.number,
               body: message
             });
+            
+            console.log('Added thank you message to PR');
+          } catch (error) {
+            console.error('Error adding thank you message to PR:', error);
           }
