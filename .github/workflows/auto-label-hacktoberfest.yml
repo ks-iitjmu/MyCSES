@@ -1,4 +1,4 @@
-name: Auto-label Hacktoberfest Issues
+name: Auto-label Issues and PRs
 
 on:
   issues:
@@ -124,6 +124,26 @@ jobs:
           const prBody = (context.payload.pull_request.body || '').toLowerCase();
           const combinedText = prTitle + ' ' + prBody;
           
+          // Auto-add 'good first issue' for beginner-friendly problems
+          const beginnerKeywords = [
+            'introductory', 'basic', 'easy', 'beginner', 'simple', 'hello world',
+            'missing number', 'weird algorithm', 'repetitions', 'increasing array'
+          ];
+          
+          if (beginnerKeywords.some(keyword => combinedText.includes(keyword))) {
+            labelsToAdd.push('good first issue');
+          }
+          
+          // Auto-add 'help wanted' for complex problems
+          const complexKeywords = [
+            'hard', 'difficult', 'complex', 'advanced', 'optimization needed',
+            'graph', 'tree', 'geometry', 'string algorithm'
+          ];
+          
+          if (complexKeywords.some(keyword => combinedText.includes(keyword))) {
+            labelsToAdd.push('help wanted');
+          }
+          
           // Determine PR type and add appropriate labels
           if (combinedText.includes('bug') || combinedText.includes('fix')) {
             labelsToAdd.push('bug');
@@ -133,9 +153,26 @@ jobs:
             labelsToAdd.push('documentation');
           }
           
-          // Add difficulty labels based on problem mentioned
-          if (combinedText.includes('introductory') || combinedText.includes('easy')) {
-            labelsToAdd.push('good first issue');
+          // Add category-specific labels
+          const categoryMap = {
+            'introductory': 'category: introductory',
+            'sorting': 'category: sorting-searching',
+            'searching': 'category: sorting-searching',
+            'dynamic programming': 'category: dp',
+            'dp': 'category: dp',
+            'graph': 'category: graph',
+            'tree': 'category: tree',
+            'mathematics': 'category: mathematics',
+            'math': 'category: mathematics',
+            'string': 'category: string',
+            'geometry': 'category: geometry'
+          };
+          
+          for (const [keyword, label] of Object.entries(categoryMap)) {
+            if (combinedText.includes(keyword)) {
+              labelsToAdd.push(label);
+              break; // Only add one category label
+            }
           }
           
           try {
@@ -151,11 +188,15 @@ jobs:
             console.error('Error adding labels to PR:', error);
           }
 
-    - name: Add welcome comment for first-time contributors
+    - name: Add thank you message
       uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
+          const now = new Date();
+          const currentMonth = now.getMonth() + 1;
+          const currentYear = now.getFullYear();
+          
           // Check if this is the user's first contribution
           const { data: issues } = await github.rest.issues.listForRepo({
             owner: context.repo.owner,
@@ -173,38 +214,59 @@ jobs:
           
           const isFirstTime = (issues.length + prs.length) <= 1;
           
-          if (isFirstTime) {
-            const welcomeMessage = "## Welcome to MyCSES! 🎉\n\n" +
-              "Thank you for your interest in contributing to our CSES solutions repository!\n\n" +
-              "### 🎃 Hacktoberfest Participant\n" +
-              "This issue/PR has been automatically labeled for **Hacktoberfest " + currentYear + "**. We're excited to have you participate!\n\n" +
-              "### 📚 Getting Started\n" +
-              "- Check out our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
-              "- Read our [Code of Conduct](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CODE_OF_CONDUCT.md)\n" +
-              "- Browse existing solutions for reference\n\n" +
-              "### 🚀 Tips for Success\n" +
-              "- Test your solution thoroughly on CSES judge\n" +
-              "- Follow our coding template and style guidelines\n" +
-              "- Add clear comments explaining your approach\n" +
-              "- Include time/space complexity analysis\n\n" +
-              "### 🏷️ Labels Added\n" +
-              "Your contribution has been automatically labeled. If you think any labels need adjustment, please let us know!\n\n" +
-              "Happy coding! 🚀";
+          let message = "";
+          
+          if (github.event_name === 'issues') {
+            if (isFirstTime) {
+              message = "## Welcome to MyCSES! 🎉\n\n" +
+                "Thank you for your interest in contributing to our CSES solutions repository!\n\n" +
+                "### 🎃 Hacktoberfest Participant\n" +
+                "This issue has been automatically labeled for **Hacktoberfest**. We're excited to have you participate!\n\n" +
+                "### 📚 Getting Started\n" +
+                "- Check out our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
+                "- Read our [Code of Conduct](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CODE_OF_CONDUCT.md)\n" +
+                "- Browse existing solutions for reference\n\n" +
+                "### 🏷️ Labels Added\n" +
+                "Your issue has been automatically labeled. If you think any labels need adjustment, please let us know!\n\n" +
+                "Happy coding! 🚀";
+            }
             
-            if (github.event_name === 'issues') {
+            if (message) {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
-                body: welcomeMessage
-              });
-            } else if (github.event_name === 'pull_request') {
-              await github.rest.pulls.createReview({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-                body: welcomeMessage,
-                event: 'COMMENT'
+                body: message
               });
             }
+          } else if (github.event_name === 'pull_request') {
+            // Always send thank you message for PRs
+            if (isFirstTime) {
+              message = "## 🎉 Welcome to MyCSES!\n\n" +
+                "Thank you for your first contribution to our CSES solutions repository!\n\n";
+            } else {
+              message = "## 🙏 Thank you for contributing!\n\n" +
+                "We appreciate your continued contributions to our CSES solutions repository!\n\n";
+            }
+            
+            message += "### 🎃 Hacktoberfest\n" +
+              "This PR has been automatically labeled for **Hacktoberfest** participation.\n\n" +
+              "### 📚 Guidelines\n" +
+              "- Please ensure your solution is tested on CSES judge\n" +
+              "- Follow our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
+              "- Include time/space complexity analysis in your description\n\n" +
+              "### 🏷️ Automatic Labels\n" +
+              "Your PR has been automatically labeled based on its content. If you think any labels need adjustment, please let us know!\n\n" +
+              "### 🔄 Next Steps\n" +
+              "- A maintainer will review your PR soon\n" +
+              "- Address any feedback or requested changes\n" +
+              "- Once approved and merged, your contribution will be part of the repository!\n\n" +
+              "Thank you for helping the competitive programming community! 🚀";
+            
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              body: message
+            });
           }
