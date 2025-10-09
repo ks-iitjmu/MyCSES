@@ -193,27 +193,43 @@ jobs:
           }
           
           // Also try to detect category from changed files paths
-          const files = context.payload.pull_request.changed_files || [];
           let categoryDetected = labelsToAdd.some(label => label.startsWith('category:'));
-          for (const file of files) {
-            if (file && file.filename && !categoryDetected) {
-              const filePath = file.filename.toLowerCase();
-              if (filePath.includes('1_introductory_problems/')) {
-                labelsToAdd.push('category: introductory');
-                categoryDetected = true;
-              } else if (filePath.includes('2_sorting_searching/')) {
-                labelsToAdd.push('category: sorting-searching');
-                categoryDetected = true;
-              } else if (filePath.includes('3_dp/')) {
-                labelsToAdd.push('category: dp');
-                categoryDetected = true;
-              } else if (filePath.includes('5_range_queries/')) {
-                labelsToAdd.push('category: range-queries');
-                categoryDetected = true;
-              } else if (filePath.includes('7_mathematics/')) {
-                labelsToAdd.push('category: mathematics');
-                categoryDetected = true;
+          if (!categoryDetected) {
+            try {
+              const { data: files } = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number
+              });
+              
+              for (const file of files) {
+                if (file && file.filename) {
+                  const filePath = file.filename.toLowerCase();
+                  if (filePath.includes('1_introductory_problems/')) {
+                    labelsToAdd.push('category: introductory');
+                    categoryDetected = true;
+                    break;
+                  } else if (filePath.includes('2_sorting_searching/')) {
+                    labelsToAdd.push('category: sorting-searching');
+                    categoryDetected = true;
+                    break;
+                  } else if (filePath.includes('3_dp/')) {
+                    labelsToAdd.push('category: dp');
+                    categoryDetected = true;
+                    break;
+                  } else if (filePath.includes('5_range_queries/')) {
+                    labelsToAdd.push('category: range-queries');
+                    categoryDetected = true;
+                    break;
+                  } else if (filePath.includes('7_mathematics/')) {
+                    labelsToAdd.push('category: mathematics');
+                    categoryDetected = true;
+                    break;
+                  }
+                }
               }
+            } catch (error) {
+              console.log('Could not fetch PR files for category detection:', error.message);
             }
           }
           
