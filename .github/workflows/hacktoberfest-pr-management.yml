@@ -6,6 +6,11 @@ on:
   pull_request:
     types: [closed]
 
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
 jobs:
   manage-hacktoberfest-labels:
     runs-on: ubuntu-latest
@@ -13,7 +18,7 @@ jobs:
     steps:
     - name: Add hacktoberfest-accepted label on approval
       if: github.event.review.state == 'approved' || (github.event.action == 'closed' && github.event.pull_request.merged == true)
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -41,25 +46,18 @@ jobs:
               console.log('Added hacktoberfest-accepted label to PR #' + prNumber);
               
               // Add a congratulatory comment
-              const congratsMessage = `
-## 🎉 Congratulations! 
-
-Your pull request has been **approved** and merged! 
-
-### 🎃 Hacktoberfest Credit
-This PR now has the \`hacktoberfest-accepted\` label, which means it counts toward your Hacktoberfest 2025 contribution goals!
-
-### 🌟 Thank You
-Thank you for contributing to MyCSES and helping improve our competitive programming solutions repository. Your contribution makes a difference!
-
-### 🚀 What's Next?
-- Feel free to work on more issues
-- Help review other contributors' PRs  
-- Share this repository with other competitive programmers
-- Star the repository if you found it helpful!
-
-Keep coding and happy Hacktoberfest! 🎃🚀
-              `;
+              const congratsMessage = "## 🎉 Congratulations!\n\n" +
+                "Your pull request has been **approved** and merged!\n\n" +
+                "### 🎃 Hacktoberfest Credit\n" +
+                "This PR now has the `hacktoberfest-accepted` label, which means it counts toward your Hacktoberfest contribution goals!\n\n" +
+                "### 🌟 Thank You\n" +
+                "Thank you for contributing to MyCSES and helping improve our competitive programming solutions repository. Your contribution makes a difference!\n\n" +
+                "### 🚀 What's Next?\n" +
+                "- Feel free to work on more issues\n" +
+                "- Help review other contributors' PRs\n" +
+                "- Share this repository with other competitive programmers\n" +
+                "- Star the repository if you found it helpful!\n\n" +
+                "Keep coding and happy Hacktoberfest! 🎃🚀";
               
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
@@ -75,7 +73,7 @@ Keep coding and happy Hacktoberfest! 🎃🚀
 
     - name: Handle rejected or closed PRs
       if: github.event.review.state == 'changes_requested' || (github.event.action == 'closed' && github.event.pull_request.merged == false)
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -131,24 +129,18 @@ Keep coding and happy Hacktoberfest! 🎃🚀
           
           // Provide feedback for PRs that need changes
           if (github.event.review.state === 'changes_requested') {
-            const feedbackMessage = `
-## 📝 Changes Requested
-
-Thank you for your contribution! The reviewer has requested some changes to improve your PR.
-
-### 🔄 Next Steps
-1. Address the feedback provided in the review
-2. Make the necessary changes to your code
-3. Test your solution thoroughly
-4. Push the updates to your branch
-
-### 💡 Tips
-- Read our [Contributing Guidelines](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md) for best practices
-- Ensure your solution follows our coding standards
-- Test against CSES judge before resubmitting
-
-Once you've addressed the feedback, your PR will be reviewed again. Keep up the great work! 🚀
-            `;
+            const feedbackMessage = "## 📝 Changes Requested\n\n" +
+              "Thank you for your contribution! The reviewer has requested some changes to improve your PR.\n\n" +
+              "### 🔄 Next Steps\n" +
+              "1. Address the feedback provided in the review\n" +
+              "2. Make the necessary changes to your code\n" +
+              "3. Test your solution thoroughly\n" +
+              "4. Push the updates to your branch\n\n" +
+              "### 💡 Tips\n" +
+              "- Read our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md) for best practices\n" +
+              "- Ensure your solution follows our coding standards\n" +
+              "- Test against CSES judge before resubmitting\n\n" +
+              "Once you've addressed the feedback, your PR will be reviewed again. Keep up the great work! 🚀";
             
             await github.rest.issues.createComment({
               owner: context.repo.owner,

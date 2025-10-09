@@ -5,13 +5,17 @@ on:
   schedule:
     - cron: '0 0 1 10 *' # Runs on October 1st each year
 
+permissions:
+  issues: write
+  contents: read
+
 jobs:
   setup-labels:
     runs-on: ubuntu-latest
     
     steps:
     - name: Setup Hacktoberfest and other labels
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -32,6 +36,11 @@ jobs:
               name: 'hacktoberfest_2025',
               color: 'FF8E53',
               description: 'Hacktoberfest 2025 specific contributions'
+            },
+            {
+              name: 'hacktoberfest_2024',
+              color: 'FF8E53',
+              description: 'Hacktoberfest 2024 specific contributions'
             },
             
             // Difficulty labels

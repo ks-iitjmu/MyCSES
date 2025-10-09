@@ -6,6 +6,11 @@ on:
   pull_request:
     types: [opened]
 
+permissions:
+  issues: write
+  pull-requests: write
+  contents: read
+
 jobs:
   auto-label:
     runs-on: ubuntu-latest
@@ -13,7 +18,7 @@ jobs:
     steps:
     - name: Add Hacktoberfest labels to issues
       if: github.event_name == 'issues'
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -23,14 +28,14 @@ jobs:
           const currentYear = now.getFullYear();
           
           // Add hacktoberfest label during October or if it's Hacktoberfest season
-          const isHacktoberfestSeason = currentMonth === 10 && currentYear === 2025;
+          const isHacktoberfestSeason = currentMonth === 10;
           
           // Always add hacktoberfest labels since this repo participates year-round
           const labelsToAdd = ['hacktoberfest'];
           
           // Add additional labels based on issue content or during Hacktoberfest season
           if (isHacktoberfestSeason) {
-            labelsToAdd.push('hacktoberfest_2025');
+            labelsToAdd.push(`hacktoberfest_${currentYear}`);
           }
           
           // Check issue title and body for keywords to determine difficulty
@@ -96,7 +101,7 @@ jobs:
 
     - name: Add Hacktoberfest labels to PRs
       if: github.event_name == 'pull_request'
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -105,13 +110,13 @@ jobs:
           const currentMonth = now.getMonth() + 1;
           const currentYear = now.getFullYear();
           
-          const isHacktoberfestSeason = currentMonth === 10 && currentYear === 2025;
+          const isHacktoberfestSeason = currentMonth === 10;
           
           // Labels to add to PRs
           const labelsToAdd = ['hacktoberfest'];
           
           if (isHacktoberfestSeason) {
-            labelsToAdd.push('hacktoberfest_2025');
+            labelsToAdd.push(`hacktoberfest_${currentYear}`);
           }
           
           // Check PR title and body for type of contribution
@@ -147,7 +152,7 @@ jobs:
           }
 
     - name: Add welcome comment for first-time contributors
-      uses: actions/github-script@v6
+      uses: actions/github-script@v7
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
@@ -169,39 +174,31 @@ jobs:
           const isFirstTime = (issues.length + prs.length) <= 1;
           
           if (isFirstTime) {
-            const welcomeMessage = `
-## Welcome to MyCSES! 🎉
-
-Thank you for your interest in contributing to our CSES solutions repository! 
-
-### 🎃 Hacktoberfest Participant
-This issue/PR has been automatically labeled for **Hacktoberfest 2025**. We're excited to have you participate!
-
-### 📚 Getting Started
-- Check out our [Contributing Guidelines](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CONTRIBUTING.md)
-- Read our [Code of Conduct](https://github.com/${context.repo.owner}/${context.repo.repo}/blob/main/CODE_OF_CONDUCT.md)
-- Browse existing solutions for reference
-
-### 🚀 Tips for Success
-- Test your solution thoroughly on CSES judge
-- Follow our coding template and style guidelines
-- Add clear comments explaining your approach
-- Include time/space complexity analysis
-
-### 🏷️ Labels Added
-Your contribution has been automatically labeled. If you think any labels need adjustment, please let us know!
-
-Happy coding! 🚀
-            `;
+            const welcomeMessage = "## Welcome to MyCSES! 🎉\n\n" +
+              "Thank you for your interest in contributing to our CSES solutions repository!\n\n" +
+              "### 🎃 Hacktoberfest Participant\n" +
+              "This issue/PR has been automatically labeled for **Hacktoberfest " + currentYear + "**. We're excited to have you participate!\n\n" +
+              "### 📚 Getting Started\n" +
+              "- Check out our [Contributing Guidelines](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CONTRIBUTING.md)\n" +
+              "- Read our [Code of Conduct](https://github.com/" + context.repo.owner + "/" + context.repo.repo + "/blob/main/CODE_OF_CONDUCT.md)\n" +
+              "- Browse existing solutions for reference\n\n" +
+              "### 🚀 Tips for Success\n" +
+              "- Test your solution thoroughly on CSES judge\n" +
+              "- Follow our coding template and style guidelines\n" +
+              "- Add clear comments explaining your approach\n" +
+              "- Include time/space complexity analysis\n\n" +
+              "### 🏷️ Labels Added\n" +
+              "Your contribution has been automatically labeled. If you think any labels need adjustment, please let us know!\n\n" +
+              "Happy coding! 🚀";
             
-            if (context.eventName === 'issues') {
+            if (github.event_name === 'issues') {
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: welcomeMessage
               });
-            } else if (context.eventName === 'pull_request') {
+            } else if (github.event_name === 'pull_request') {
               await github.rest.pulls.createReview({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
