@@ -2,13 +2,13 @@
 Problem: Raab Game I
 Category: Greedy / Simulation
 Difficulty: Medium
-Time Complexity: O(n^2)
+Time Complexity: O(n)
 Space Complexity: O(n)
 
 Approach:
 - Check if a + b <= n (feasible)
-- Greedily assign wins for each player using largest vs smallest remaining cards
-- Fill remaining cards arbitrarily to produce a valid game sequence
+- Construct two sequences where player 1 wins exactly 'a' rounds and player 2 wins exactly 'b' rounds
+- Each player must use cards 1 to n exactly once
 */
 
 #include <bits/stdc++.h>
@@ -29,38 +29,51 @@ int main() {
             continue;
         }
 
-        vector<int> p1, p2;
-        vector<int> remaining1, remaining2;
-
-        // Initial card sets
-        for(int i=1;i<=n;i++) remaining1.push_back(i);
-        for(int i=1;i<=n;i++) remaining2.push_back(i);
-
-        // Assign 'a' points to player 1
-        for(int i=0;i<a;i++) {
-            p1.push_back(n - i);          // largest cards of player 1
-            p2.push_back(i + 1);          // smallest cards of player 2
-            remaining1.erase(remove(remaining1.begin(), remaining1.end(), n - i), remaining1.end());
-            remaining2.erase(remove(remaining2.begin(), remaining2.end(), i + 1), remaining2.end());
-        }
-
-        // Assign 'b' points to player 2
-        for(int i=0;i<b;i++) {
-            p1.push_back(remaining1[i]);          // smallest remaining cards of player1
-            p2.push_back(n - i);                  // largest cards of player2
-        }
-
-        // Fill remaining cards arbitrarily
-        int r1start = b;
-        for(int i=r1start;i<remaining1.size();i++) {
-            p1.push_back(remaining1[i]);
-            p2.push_back(remaining2[i - b]);
-        }
-
         cout << "YES\n";
-        for(int x : p1) cout << x << " ";
+        
+        vector<int> p1(n), p2(n);
+        vector<bool> used1(n+1, false), used2(n+1, false);
+        
+        // First a rounds: player 1 wins
+        for(int i = 0; i < a; i++) {
+            p1[i] = n - i;         // P1 gets largest cards
+            p2[i] = i + 1;         // P2 gets smallest cards  
+            used1[n - i] = true;
+            used2[i + 1] = true;
+        }
+        
+        // Next b rounds: player 2 wins
+        for(int i = 0; i < b; i++) {
+            p1[a + i] = a + 1 + i;     // P1 gets next smallest available
+            p2[a + i] = n - a - i;     // P2 gets next largest available
+            used1[a + 1 + i] = true;
+            used2[n - a - i] = true;
+        }
+        
+        // Fill remaining rounds with unused cards (these will be draws)
+        vector<int> remaining1, remaining2;
+        for(int i = 1; i <= n; i++) {
+            if(!used1[i]) remaining1.push_back(i);
+            if(!used2[i]) remaining2.push_back(i);
+        }
+        
+        for(int i = a + b; i < n; i++) {
+            p1[i] = remaining1[i - a - b];
+            p2[i] = remaining2[i - a - b];
+        }
+        
+        // Output player 1's sequence
+        for(int i = 0; i < n; i++) {
+            cout << p1[i];
+            if(i < n-1) cout << " ";
+        }
         cout << "\n";
-        for(int x : p2) cout << x << " ";
+        
+        // Output player 2's sequence  
+        for(int i = 0; i < n; i++) {
+            cout << p2[i];
+            if(i < n-1) cout << " ";
+        }
         cout << "\n";
     }
 
