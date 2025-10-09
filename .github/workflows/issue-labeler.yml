@@ -3,15 +3,12 @@ name: 🏷️ Issue Labeler
 on:
   issues:
     types: [opened, edited]
-  pull_request:
-    types: [opened, synchronize, edited]
 
 jobs:
   label:
     runs-on: ubuntu-latest
     permissions:
       issues: write
-      pull-requests: write
       contents: read
 
     steps:
@@ -20,7 +17,7 @@ jobs:
         with:
           script: |
             const { context } = require('@actions/github');
-            const issue = context.payload.issue || context.payload.pull_request;
+            const issue = context.payload.issue;
             const issueTitleAndBody = (issue.title + ' ' + (issue.body || '')).toLowerCase();
             
             // Define label mappings based on existing repository labels
@@ -132,56 +129,18 @@ jobs:
               }
             }
             
-            // Special logic for pull requests - check changed files
-            if (context.payload.pull_request) {
-              const { data: files } = await github.rest.pulls.listFiles({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: context.payload.pull_request.number,
-              });
-              
-              for (const file of files) {
-                const filePath = file.filename.toLowerCase();
-                
-                // Category based on folder structure
-                if (filePath.includes('1_introductory')) {
-                  labelsToAdd.push('category: introductory');
-                } else if (filePath.includes('2_sorting_searching')) {
-                  labelsToAdd.push('category: sorting-searching');
-                } else if (filePath.includes('3_dp')) {
-                  labelsToAdd.push('category: dp');
-                } else if (filePath.includes('5_range_queries')) {
-                  labelsToAdd.push('category: range-queries');
-                } else if (filePath.includes('7_mathematics')) {
-                  labelsToAdd.push('category: mathematics');
-                }
-                
-                // Documentation changes
-                if (filePath.includes('readme') || filePath.includes('.md')) {
-                  labelsToAdd.push('documentation');
-                }
-              }
-            }
+
             
             // Remove duplicates
             const uniqueLabels = [...new Set(labelsToAdd)];
             
             if (uniqueLabels.length > 0) {
-              if (context.payload.issue) {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.issue.number,
-                  labels: uniqueLabels,
-                });
-              } else {
-                await github.rest.issues.addLabels({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: context.payload.pull_request.number,
-                  labels: uniqueLabels,
-                });
-              }
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.payload.issue.number,
+                labels: uniqueLabels,
+              });
               
               console.log(`Added labels: ${uniqueLabels.join(', ')}`);
             } else {
