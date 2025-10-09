@@ -1,0 +1,181 @@
+name: Setup Repository Labels
+
+on:
+  workflow_dispatch: # Allows manual trigger
+  schedule:
+    - cron: '0 0 1 10 *' # Runs on October 1st each year
+
+jobs:
+  setup-labels:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Setup Hacktoberfest and other labels
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          // Define all the labels we want in the repository
+          const labels = [
+            // Hacktoberfest labels
+            {
+              name: 'hacktoberfest',
+              color: 'FF6B35',
+              description: 'Issues/PRs for Hacktoberfest participation'
+            },
+            {
+              name: 'hacktoberfest-accepted',
+              color: '9C4668',
+              description: 'Approved PRs for Hacktoberfest'
+            },
+            {
+              name: 'hacktoberfest_2025',
+              color: 'FF8E53',
+              description: 'Hacktoberfest 2025 specific contributions'
+            },
+            
+            // Difficulty labels
+            {
+              name: 'good first issue',
+              color: '7057FF',
+              description: 'Good for newcomers'
+            },
+            {
+              name: 'help wanted',
+              color: '008672',
+              description: 'Extra attention is needed'
+            },
+            {
+              name: 'easy',
+              color: '0E8A16',
+              description: 'Easy difficulty problems'
+            },
+            {
+              name: 'medium',
+              color: 'FBCA04',
+              description: 'Medium difficulty problems'
+            },
+            {
+              name: 'hard',
+              color: 'D93F0B',
+              description: 'Hard difficulty problems'
+            },
+            
+            // Type labels
+            {
+              name: 'bug',
+              color: 'D73A4A',
+              description: 'Something is not working'
+            },
+            {
+              name: 'enhancement',
+              color: 'A2EEEF',
+              description: 'New feature or request'
+            },
+            {
+              name: 'documentation',
+              color: '0075CA',
+              description: 'Improvements or additions to documentation'
+            },
+            {
+              name: 'invalid',
+              color: 'E4E669',
+              description: 'This does not seem right'
+            },
+            {
+              name: 'duplicate',
+              color: 'CFD3D7',
+              description: 'This issue or pull request already exists'
+            },
+            
+            // Category labels
+            {
+              name: 'category: introductory',
+              color: 'C5DEF5',
+              description: 'Introductory problems'
+            },
+            {
+              name: 'category: sorting-searching',
+              color: 'C5DEF5',
+              description: 'Sorting and searching problems'
+            },
+            {
+              name: 'category: dp',
+              color: 'C5DEF5',
+              description: 'Dynamic programming problems'
+            },
+            {
+              name: 'category: graph',
+              color: 'C5DEF5',
+              description: 'Graph algorithm problems'
+            },
+            {
+              name: 'category: tree',
+              color: 'C5DEF5',
+              description: 'Tree algorithm problems'
+            },
+            {
+              name: 'category: mathematics',
+              color: 'C5DEF5',
+              description: 'Mathematical problems'
+            },
+            {
+              name: 'category: string',
+              color: 'C5DEF5',
+              description: 'String algorithm problems'
+            },
+            {
+              name: 'category: geometry',
+              color: 'C5DEF5',
+              description: 'Computational geometry problems'
+            },
+            {
+              name: 'category: range-queries',
+              color: 'C5DEF5',
+              description: 'Range query problems'
+            },
+            {
+              name: 'category: advanced',
+              color: 'C5DEF5',
+              description: 'Advanced technique problems'
+            }
+          ];
+          
+          // Get existing labels
+          const { data: existingLabels } = await github.rest.issues.listLabelsForRepo({
+            owner: context.repo.owner,
+            repo: context.repo.repo
+          });
+          
+          const existingLabelNames = existingLabels.map(label => label.name);
+          
+          // Create or update labels
+          for (const label of labels) {
+            try {
+              if (existingLabelNames.includes(label.name)) {
+                // Update existing label
+                await github.rest.issues.updateLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description
+                });
+                console.log(`Updated label: ${label.name}`);
+              } else {
+                // Create new label
+                await github.rest.issues.createLabel({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  name: label.name,
+                  color: label.color,
+                  description: label.description
+                });
+                console.log(`Created label: ${label.name}`);
+              }
+            } catch (error) {
+              console.error(`Error with label ${label.name}:`, error);
+            }
+          }
+          
+          console.log('Label setup complete!')
