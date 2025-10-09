@@ -1,0 +1,189 @@
+name: 🏷️ Issue Labeler
+
+on:
+  issues:
+    types: [opened, edited]
+  pull_request:
+    types: [opened, synchronize, edited]
+
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Label based on content
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { context } = require('@actions/github');
+            const issue = context.payload.issue || context.payload.pull_request;
+            const issueTitleAndBody = (issue.title + ' ' + (issue.body || '')).toLowerCase();
+            
+            // Define label mappings based on existing repository labels
+            const labelMappings = [
+              // Category labels based on folder structure
+              {
+                keywords: ['1_introductory', 'introductory', 'basic', 'beginner'],
+                label: 'category: introductory'
+              },
+              {
+                keywords: ['2_sorting_searching', 'sorting', 'searching', 'binary search', 'sort'],
+                label: 'category: sorting-searching'
+              },
+              {
+                keywords: ['3_dp', 'dynamic programming', 'dp', 'memoization'],
+                label: 'category: dp'
+              },
+              {
+                keywords: ['5_range_queries', 'range query', 'segment tree', 'fenwick'],
+                label: 'category: range-queries'
+              },
+              {
+                keywords: ['7_mathematics', 'math', 'number theory', 'gcd', 'modular'],
+                label: 'category: mathematics'
+              },
+              {
+                keywords: ['graph', 'dfs', 'bfs', 'shortest path', 'tree', 'dijkstra'],
+                label: 'category: graph'
+              },
+              {
+                keywords: ['geometry', 'point', 'line', 'polygon', 'convex hull'],
+                label: 'category: geometry'
+              },
+              {
+                keywords: ['string', 'substring', 'pattern', 'kmp', 'suffix'],
+                label: 'category: string'
+              },
+              {
+                keywords: ['tree', 'binary tree', 'ancestor', 'lca'],
+                label: 'category: tree'
+              },
+              {
+                keywords: ['advanced', 'complex', 'hard technique'],
+                label: 'category: advanced'
+              },
+              
+              // Difficulty labels
+              {
+                keywords: ['easy', 'simple', 'basic', 'beginner'],
+                label: 'easy'
+              },
+              {
+                keywords: ['medium', 'intermediate'],
+                label: 'medium'
+              },
+              {
+                keywords: ['hard', 'difficult', 'complex', 'advanced'],
+                label: 'hard'
+              },
+              
+              // Issue type labels
+              {
+                keywords: ['bug', 'error', 'wrong', 'incorrect', 'fix', 'broken'],
+                label: 'bug'
+              },
+              {
+                keywords: ['feature', 'enhancement', 'new', 'add', 'implement'],
+                label: 'enhancement'
+              },
+              {
+                keywords: ['documentation', 'readme', 'comment', 'explain'],
+                label: 'documentation'
+              },
+              {
+                keywords: ['duplicate', 'already exists', 'same as'],
+                label: 'duplicate'
+              },
+              {
+                keywords: ['help wanted', 'help needed', 'assistance'],
+                label: 'help wanted'
+              },
+              {
+                keywords: ['good first issue', 'beginner friendly', 'newcomer'],
+                label: 'good first issue'
+              },
+              
+              // Hacktoberfest labels
+              {
+                keywords: ['hacktoberfest', 'hacktober', 'october'],
+                label: 'hacktoberfest'
+              },
+              {
+                keywords: ['hacktoberfest 2025', '2025'],
+                label: 'hacktoberfest_2025'
+              }
+            ];
+            
+            const labelsToAdd = [];
+            
+            // Check for keyword matches
+            for (const mapping of labelMappings) {
+              for (const keyword of mapping.keywords) {
+                if (issueTitleAndBody.includes(keyword)) {
+                  if (!labelsToAdd.includes(mapping.label)) {
+                    labelsToAdd.push(mapping.label);
+                  }
+                  break;
+                }
+              }
+            }
+            
+            // Special logic for pull requests - check changed files
+            if (context.payload.pull_request) {
+              const { data: files } = await github.rest.pulls.listFiles({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+              });
+              
+              for (const file of files) {
+                const filePath = file.filename.toLowerCase();
+                
+                // Category based on folder structure
+                if (filePath.includes('1_introductory')) {
+                  labelsToAdd.push('category: introductory');
+                } else if (filePath.includes('2_sorting_searching')) {
+                  labelsToAdd.push('category: sorting-searching');
+                } else if (filePath.includes('3_dp')) {
+                  labelsToAdd.push('category: dp');
+                } else if (filePath.includes('5_range_queries')) {
+                  labelsToAdd.push('category: range-queries');
+                } else if (filePath.includes('7_mathematics')) {
+                  labelsToAdd.push('category: mathematics');
+                }
+                
+                // Documentation changes
+                if (filePath.includes('readme') || filePath.includes('.md')) {
+                  labelsToAdd.push('documentation');
+                }
+              }
+            }
+            
+            // Remove duplicates
+            const uniqueLabels = [...new Set(labelsToAdd)];
+            
+            if (uniqueLabels.length > 0) {
+              if (context.payload.issue) {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.issue.number,
+                  labels: uniqueLabels,
+                });
+              } else {
+                await github.rest.issues.addLabels({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: context.payload.pull_request.number,
+                  labels: uniqueLabels,
+                });
+              }
+              
+              console.log(`Added labels: ${uniqueLabels.join(', ')}`);
+            } else {
+              console.log('No matching labels found');
+            }
