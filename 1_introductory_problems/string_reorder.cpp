@@ -12,10 +12,8 @@
 //      (not equal to the previous one) that still has remaining occurrences.
 // 4. Continue until the string is fully built or impossible.
 
-
 #include <bits/stdc++.h>
 using namespace std;
-
 
 int main() {
     ios::sync_with_stdio(false);
@@ -23,51 +21,47 @@ int main() {
 
     string s;
     cin >> s;
-
     int n = s.size();
+
     vector<int> freq(26, 0);
     for (char c : s) freq[c - 'A']++;
 
-    // Check feasibility
     int maxFreq = *max_element(freq.begin(), freq.end());
     if (maxFreq > (n + 1) / 2) {
         cout << -1 << "\n";
         return 0;
     }
 
-    string ans;
-    ans.reserve(n);
-    char prev = '#';
+    string result;
+    char prev = '#'; // last used character
 
-    for (int i = 0; i < n; ++i) {
-        char pick = 0;
+    // Using a simple greedy loop
+    for (int i = 0; i < n; i++) {
+        // Find the smallest possible character that can be used
+        for (int j = 0; j < 26; j++) {
+            if (freq[j] == 0) continue;
+            char c = 'A' + j;
 
-        for (int c = 0; c < 26; ++c) {
-            if (freq[c] == 0) continue;
-            char ch = 'A' + c;
-            if (ch == prev) continue;
+            // Skip if same as previous
+            if (c == prev) continue;
 
-            // Try placing this character and check if the rest is possible
-            freq[c]--;
+            // Try choosing this char and see if it's valid for remaining positions
+            freq[j]--;
+            // Check if it's still possible to fill rest
             int remaining = n - i - 1;
             int maxLeft = *max_element(freq.begin(), freq.end());
             if (maxLeft <= (remaining + 1) / 2) {
-                pick = ch;
+                result += c;
+                prev = c;
                 break;
+            } else {
+                freq[j]++; // undo
             }
-            freq[c]++; // backtrack if not valid
         }
-
-        if (!pick) {
-            cout << -1 << "\n";
-            return 0;
-        }
-
-        ans.push_back(pick);
-        prev = pick;
-        freq[pick - 'A']--;
     }
 
-    cout << ans << "\n";
+    if ((int)result.size() != n) cout << -1 << "\n";
+    else cout << result << "\n";
+
     return 0;
 }
