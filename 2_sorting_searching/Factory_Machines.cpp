@@ -3,30 +3,32 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-typedef long long ll;
-typedef vector<ll> vll;
-#define bg begin()
-#define ed end()
-
 int main()
 {
-    ios::sync_with_stdio(0);
-    cin.tie(0);
-    cout.tie(0);
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
 
-    ll n, t;
+    long long n, t;
     cin >> n >> t;
-    vll k(n);
-    for (ll &x : k)
-        cin >> x;
+    vector<long long> k(n);
+    for (int i = 0; i < n; i++)
+        cin >> k[i];
 
-    ll left = 1, right = 1e18, ans = right;
+    long long left = 0;
+    long long right = *min_element(k.begin(), k.end()) * t;
+    long long ans = right;
+
     while (left <= right)
     {
-        ll mid = left + (right - left) / 2;
-        ll products = 0;
-        for (ll i = 0; i < n; i++)
-            products += mid / k[i];
+        long long mid = (left + right) / 2;
+
+        long long products = 0;
+        for (auto time : k)
+        {
+            products += mid / time;
+            if (products >= t)
+                break;
+        }
 
         if (products >= t)
         {
@@ -40,6 +42,5 @@ int main()
     }
 
     cout << ans << "\n";
-
     return 0;
 }
