@@ -21,6 +21,9 @@ given below is the solution for this problem
 
 */
 
+
+/*Macros for the competitive programming, for this problem we are using
+Z algorthim */
 #pragma GCC optimize ("O3")
 #pragma GCC target ("sse4")
 #include<bits/stdc++.h>
@@ -68,6 +71,22 @@ given below is the solution for this problem
 #define gh fflush(stdout)
 #define why {print("LOL") return 0;}
 using namespace std;
+
+//------------------------------------------------------------
+// Function: computeZ()
+// Purpose : Calculate Z-array for a given string 's'
+//------------------------------------------------------------
+/*
+Z[i] = length of longest substring starting from index i
+       which is also a prefix of the entire string 's'
+
+Example:
+s = "aabxaayaab"
+Z = [0, 1, 0, 0, 1, 0, 2, 1, 0, 0]
+
+Z-algorithm helps us find pattern occurrences efficiently by
+building this Z-array for (pattern + '$' + text).
+*/
  
  
 ll n,t,k,maxn,x,y,flag=0,l1,r1,l2,r2,parity[2]={0,0},ok,need,c=0,m;
@@ -79,17 +98,25 @@ vc computeZ(string& s)
 {
 	ll n=len(s);
 	vc z(n+1,0);
-	ll l=0,r=0;
+	ll l=0,r=0; // [l, r) is the window of the substring matching the prefix
 	foi(1,n)
     {
-		if(i<r)	z[i]=min(r-i,z[i-l]);
-		while(i+z[i]<n and s[z[i]]==s[i+z[i]]) z[i]++;
-		if(i+z[i]>r) l=i,r=i+z[i];
+        // If i is inside the current [l, r) window, reuse previous Z values
+		if(i<r)	
+        z[i]=min(r-i,z[i-l]);
+
+        // Try to extend the match beyond current Z[i]
+		while(i+z[i]<n and s[z[i]]==s[i+z[i]]) 
+        z[i]++;
+
+        // If extended beyond r, update window [l, r)
+		if(i+z[i]>r) 
+        l=i,r=i+z[i];
 	}
 	return z;
 }
  
-
+// Main fucntion call
 signed main()
 {
     fio
@@ -98,11 +125,17 @@ signed main()
     tc
     {
         cin>>s>>p;
+
+        // Step 1: Combine pattern + '$' + text
+        // '$' is a separator that never appears in input (ensures no overlap confusion)
         string ps=p+"$"+s;
+
+        // Step 2: Build Z-array for combined string
         vc z=computeZ(ps);
+
         ll ans=0,m=len(p);
-        foi(m+1,len(ps)) if(z[i]>=m) ans++;
-        print(ans)
+        foi(m+1,len(ps)) if(z[i]>=m) ans++; // founded a match...
+        print(ans)  // print number...
     }
     return 0;
 }
