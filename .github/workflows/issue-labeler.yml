@@ -3,14 +3,6 @@ name: 🏷️ Issue Labeler
 on:
   issues:
     types: [opened, edited]
-  pull_request:
-    types: [opened, edited, reopened, synchronize]
-  # Use pull_request_target so workflows triggered by PRs from forks can
-  # run with the repository's write token and add labels. This is safe here
-  # because the script only reads the event payload and calls the Issues API;
-  # it does not check out or run untrusted code from the PR.
-  pull_request_target:
-    types: [opened, edited, reopened, synchronize]
 
 jobs:
   label:
@@ -24,10 +16,10 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            // Support both issues and pull requests (PRs are issues in the API)
-            const item = context.payload.issue ?? context.payload.pull_request;
+            // Support only issues
+            const item = context.payload.issue;
             if (!item) {
-              console.log('No issue or pull_request payload found. Exiting.');
+              console.log('No issue payload found. Exiting.');
               return;
             }
             const issueTitleAndBody = (item.title + ' ' + (item.body || '')).toLowerCase();
@@ -84,10 +76,6 @@ jobs:
               {
                 keywords: ['medium', 'intermediate'],
                 label: 'medium'
-              },
-              {
-                keywords: ['hard', 'difficult', 'complex', 'advanced'],
-                label: 'hard'
               },
               
               // Issue type labels
