@@ -105,11 +105,11 @@ jobs:
               
               // Hacktoberfest labels
               {
-                keywords: ['hacktoberfest', 'hacktober', 'october'],
+                keywords: ['hacktoberfest', 'hacktober', 'october', 'hactoberfest'],
                 label: 'hacktoberfest'
               },
               {
-                keywords: ['hacktoberfest 2025', '2025'],
+                keywords: ['hacktoberfest 2025', '2025', 'hactoberfest_2025'],
                 label: 'hacktoberfest_2025'
               }
             ];
