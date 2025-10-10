@@ -26,56 +26,60 @@ jobs:
             
             // Define label mappings based on existing repository labels
             const labelMappings = [
-              // Category labels based on folder structure
+              // Category labels based on folder structure (checked first for priority)
               {
-                keywords: ['1_introductory', 'introductory', 'basic', 'beginner'],
+                keywords: ['category: introductory', 'introductory problems', '1_introductory', 'introductory_problems'],
                 label: 'category: introductory'
               },
               {
-                keywords: ['2_sorting_searching', 'sorting', 'searching', 'binary search', 'sort'],
+                keywords: ['category: sorting', 'category: searching', 'sorting and searching', '2_sorting_searching', 'sorting problems', 'searching problems', 'binary search'],
                 label: 'category: sorting-searching'
               },
               {
-                keywords: ['3_dp', 'dynamic programming', 'dp', 'memoization'],
+                keywords: ['category: dp', 'category: dynamic programming', 'dynamic programming', '3_dp', 'dp problems'],
                 label: 'category: dp'
               },
               {
-                keywords: ['5_range_queries', 'range query', 'segment tree', 'fenwick'],
+                keywords: ['category: range queries', 'range queries', '5_range_queries', 'range query', 'segment tree', 'fenwick tree'],
                 label: 'category: range-queries'
               },
               {
-                keywords: ['7_mathematics', 'math', 'number theory', 'gcd', 'modular'],
+                keywords: ['category: mathematics', 'mathematics', '7_mathematics', 'number theory', 'modular arithmetic'],
                 label: 'category: mathematics'
               },
               {
-                keywords: ['graph', 'dfs', 'bfs', 'shortest path', 'tree', 'dijkstra'],
+                keywords: ['category: graph', 'graph theory', 'graph algorithms', 'dfs', 'bfs', 'shortest path', 'dijkstra'],
                 label: 'category: graph'
               },
               {
-                keywords: ['geometry', 'point', 'line', 'polygon', 'convex hull'],
+                keywords: ['category: geometry', 'geometry', 'computational geometry', 'convex hull'],
                 label: 'category: geometry'
               },
               {
-                keywords: ['string', 'substring', 'pattern', 'kmp', 'suffix'],
+                keywords: ['category: string', 'string algorithms', 'string processing', 'pattern matching', 'kmp', 'suffix array'],
                 label: 'category: string'
               },
               {
-                keywords: ['tree', 'binary tree', 'ancestor', 'lca'],
+                keywords: ['category: tree', 'tree algorithms', 'binary tree', 'tree problems', 'lca', 'lowest common ancestor'],
                 label: 'category: tree'
               },
               {
-                keywords: ['advanced', 'complex', 'hard technique'],
+                keywords: ['category: advanced', 'advanced techniques', 'advanced problems'],
                 label: 'category: advanced'
               },
               
-              // Difficulty labels
+              // Difficulty labels (use more specific patterns to avoid conflicts)
               {
-                keywords: ['easy', 'simple', 'basic', 'beginner'],
-                label: 'easy'
+                keywords: ['difficulty: easy', 'easy problem', 'simple problem'],
+                label: 'difficulty: easy'
               },
               {
-                keywords: ['medium', 'intermediate'],
-                label: 'medium'
+                keywords: ['difficulty: medium', 'medium problem', 'intermediate problem'],
+                label: 'difficulty: medium'
+              },
+              {
+                keywords: ['difficulty: hard', 'hard problem', 'challenging problem'],
+                label: 'difficulty: hard'
               },
               
               // Issue type labels
