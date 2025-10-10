@@ -25,8 +25,11 @@ int main()
     for (ll i = 0; i < n; i++)
         cin >> tasks[i].duration >> tasks[i].deadline;
 
+    // To maximize total reward = sum(deadlines) - sum(finish_times),
+    // we must minimize the sum of finishing times. That is achieved by
+    // scheduling tasks in non-decreasing order of duration (SPT rule).
     sort(tasks.bg, tasks.ed, [](const Task &t1, const Task &t2) {
-        return t1.deadline < t2.deadline;
+        return t1.duration < t2.duration;
     });
 
     ll time = 0, reward = 0;
