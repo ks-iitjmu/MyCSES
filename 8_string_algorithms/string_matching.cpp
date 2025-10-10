@@ -22,8 +22,7 @@ given below is the solution for this problem
 */
 
 
-/*Macros for the competitive programming, for this problem we are using
-Z algorthim */
+/*Macros for the competitive programming, for this problem we are using Z algorthim for pattern matching */
 #pragma GCC optimize ("O3")
 #pragma GCC target ("sse4")
 #include<bits/stdc++.h>
@@ -72,12 +71,11 @@ Z algorthim */
 #define why {print("LOL") return 0;}
 using namespace std;
 
-//------------------------------------------------------------
-// Function: computeZ()
+
+/* Function: computeZ()
 // Purpose : Calculate Z-array for a given string 's'
 //------------------------------------------------------------
-/*
-Z[i] = length of longest substring starting from index i
+/* Z[i] = length of longest substring starting from index i
        which is also a prefix of the entire string 's'
 
 Example:
@@ -87,8 +85,7 @@ Z = [0, 1, 0, 0, 1, 0, 2, 1, 0, 0]
 Z-algorithm helps us find pattern occurrences efficiently by
 building this Z-array for (pattern + '$' + text).
 */
- 
- 
+
 ll n,t,k,maxn,x,y,flag=0,l1,r1,l2,r2,parity[2]={0,0},ok,need,c=0,m;
 ll mod=1e9+7,INF=1e18,MAX=5e5;
  
