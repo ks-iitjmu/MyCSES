@@ -133,6 +133,14 @@ jobs:
               }
             }
             
+            // Always add "good first issue" and "help wanted" labels to all issues
+            if (!labelsToAdd.includes('good first issue')) {
+              labelsToAdd.push('good first issue');
+            }
+            if (!labelsToAdd.includes('help wanted')) {
+              labelsToAdd.push('help wanted');
+            }
+            
             // Always add Hacktoberfest labels during October (Hacktoberfest month)
             const currentDate = new Date();
             const currentMonth = currentDate.getMonth(); // 0-indexed, so October is 9
