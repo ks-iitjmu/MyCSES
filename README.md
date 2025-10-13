@@ -63,6 +63,10 @@ The solutions are organized by problem categories:
 ### 3. Dynamic Programming
 - **Minimizing Coins** - Classic coin change problem
 
+### 4. [Graph Algorithms](./4_graph_algorithms/)
+- [**Counting Rooms**](./4_graph_algorithms/Counting_Rooms.cpp) 
+- [**Labyrinth** ](./4_graph_algorithms/Labyrinth.cpp) - Finding path from A to B
+
 ### 7. Mathematics
 - **Exponentiation 2** - Fast exponentiation with modular arithmetic
 - **Sum of Divisors** - Mathematical series calculation
