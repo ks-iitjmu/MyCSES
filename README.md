@@ -71,6 +71,7 @@ The solutions are organized by problem categories:
 - **Exponentiation 2** - Fast exponentiation with modular arithmetic
 - **Sum of Divisors** - Mathematical series calculation
 - **Creating Strings** - Combinatorics with factorial calculations
+- **Next Prime** - Finding next prime
 
 ## 🔧 Implementation Details
 
