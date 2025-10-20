@@ -8,7 +8,6 @@ int main() {
 
     int t;
     cin >> t;
-
     const int MAXN = 1e6;
     vector<long long> dpA(MAXN + 1), dpB(MAXN + 1);
     dpA[1] = dpB[1] = 1;
