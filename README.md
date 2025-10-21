@@ -72,6 +72,7 @@ The solutions are organized by problem categories:
 - **Sum of Divisors** - Mathematical series calculation
 - **Creating Strings** - Combinatorics with factorial calculations
 - **Next Prime** - Finding next prime
+- **Christmas Party** - Finding derangement of $n$ elements
 
 ## 🔧 Implementation Details
 
