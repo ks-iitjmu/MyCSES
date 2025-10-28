@@ -66,6 +66,7 @@ The solutions are organized by problem categories:
 ### 4. [Graph Algorithms](./4_graph_algorithms/)
 - [**Counting Rooms**](./4_graph_algorithms/Counting_Rooms.cpp) 
 - [**Labyrinth** ](./4_graph_algorithms/Labyrinth.cpp) - Finding path from A to B
+- [**Shortest Routes II** ](./4_graph_algorithms/shortest_routes_II.cpp) - Finding shortest path from $u$ to $v$ for $q$ different queries
 
 ### 7. Mathematics
 - **Exponentiation 2** - Fast exponentiation with modular arithmetic
