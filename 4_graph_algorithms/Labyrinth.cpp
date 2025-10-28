@@ -1,121 +1,93 @@
-#include <bits/stdc++.h>
+#include<bits/stdc++.h>
 using namespace std;
-
-/*
-
-Labyrinth(https://cses.fi/problemset/task/1193)
-
-# Prerequisite:
--> Graph theory, Breadth First Search
-
-# Main Idea:
--> We can start from the starting position and visit all the 4 direction one by one and when we reach 'B', we'll stop. But the main task is to find the 
-   actual path. For tracking the path, we can backtrack the from the last node('B') to first node('A').
-
-Solution:
-
-1. Find the position of the 'A' and store  that in queue.
-2. Start BFS from starting position and visit all the cell.
-3. While processing if we reach our destination then backtrack and construct the path else we can't reach till the end.
-
-Complexties:
-1. Time Complexity: O(n * m)
-2. Space Commplexity: O(n * m)
-*/
+#define INF 2047483647
+#define INFL 9223372036854775807
+#define ll long long
+#define pii pair<ll,ll>
+#define F first
+#define S second
+#define mp make_pair
+#define pb push_back
+#define ull unsigned long long
+#define M 1000000007
+#define FASTIO ios_base::sync_with_stdio(false);cin.tie(NULL); cout.tie(NULL);
+#define take(x) scanf("%d",&x)
+#define DE(x) printf("\ndebug %d\n",x);
+#define vout(x) for(int i=0;i<x.size();i++) printf("%d ",x[i]);
+#define pie acos(-1)
+#define MOD 998244353
 
 
-int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
+int dx[] = {-1,1,0,0};
+int dy[] = {0,0,-1,1};
 
-    int n, m;
-    cin >> n >> m;
-    
-    /// Helper function to verify indices
-    std::function<bool(int, int)> is_valid_index = [&](int x, int y) -> bool {
-        return x >= 0 && y >= 0 && x < n && y < m;
-    };
-    
-    /// Given labyrinth map
-    vector<string> labyrinth(n);
-    /// Stores if the cell is visited or not, so that we don't visit the same cell twice.
-    vector<vector<bool>> vis(n, vector<bool> (m, false));
-    /// Queue to perform DFS
-    queue<pair<int, int>> q;
-    /// Matrix to store the information that from which side we came. path[2][3] = 'L', means we came from (2, 4)
-    vector<vector<char>> path(n, vector<char> (m));
+string s[1005];
+int vis[1005][1005];
+pii parent[1005][1005];
+int dir[1005][1005];
+char dd[] = {'D','U','R','L'};
+int main(){
+    int n,m;
+    cin>>n>>m;
+    for(int i=0;i<n;i++)
+        cin>>s[i];
 
-    // These array for traversion to the L, R, D and U
-    int dx[] = {1, 0, -1, 0};
-    int dy[] = {0, 1, 0, -1};
-    char direction[] = {'D', 'R', 'U', 'L'};
-
-    for (int i = 0; i < n; i++) {
-        cin >> labyrinth[i];
-        for (int j = 0; j < m; j++) {
-            if (labyrinth[i][j] == 'A') {
-                q.push({i, j});   
-                vis[i][j] = true;
-                break;
-            }
-        } 
+    pii st,en;
+    for(int i=0;i<n;i++){
+        for(int j=0;j<m;j++){
+            if( s[i][j] == 'B' ) st = {i,j};
+            if( s[i][j] == 'A' ) en = {i,j};
+        }
     }
-    bool is_path_exists = false;
-    /// Index of destination
-    int final_x, final_y;
 
-    // BFS Algorithm
-    while (!q.empty()) {
-        int x = q.front().first, y = q.front().second;
+    queue<pii>q;
+
+    q.push(st);
+    vis[st.F][st.S] = 1;
+    while(!q.empty()){
+        auto u = q.front();
         q.pop();
+        for(int k=0;k<4;k++){
+            int vx = u.F+dx[k];
+            int vy = u.S+dy[k];
 
-        for (int k = 0; k < 4; k++) {
-            int nx = x + dx[k], ny = y + dy[k];
-            if (!is_valid_index(nx, ny)) {
-                continue;
+            if( vx>=0 and vy>=0 and vx<n and vy<m and s[vx][vy]!='#' and vis[vx][vy] == 0  ){
+                parent[vx][vy] = u;
+                dir[vx][vy] = k;
+                vis[vx][vy] = 1;
+                q.push({vx,vy});
             }
-
-            // We didn't go to this cell. Note that we can't visit the cell which has '#'
-            if (labyrinth[nx][ny] == '.' && !vis[nx][ny]) {
-                vis[nx][ny] = true;  
-                q.push({nx, ny});
-                path[nx][ny] = direction[k]; // Store the information from where we came
-            } else if (labyrinth[nx][ny] == 'B') {
-                path[nx][ny] = direction[k];
-                final_x = nx, final_y = ny; 
-                is_path_exists = true;
-                break;
-            }
-        }
-        if (is_path_exists) {
-            break;
         }
     }
 
-    if (!is_path_exists) {
-        cout << "NO\n";
+    if( vis[en.F][en.S] == 0 ){
+        cout<<"NO";
         return 0;
     }
+    cout<<"YES"<<endl;
+    int steps = 0;
+   // cout<<en.F<<" "<<en.S<<"    "<<st.F<<" "<<st.S<<endl;
+    int x = en.F,y = en.S;
+    while( x!= st.F or y!=st.S){
+        //cout<<x<<" "<<y<<endl;
+        steps++;
+        auto v = parent[x][y];
+        x = v.F;
+        y = v.S;
 
-    // We need to construct the path
-    string full_path = "";
-    
-    while (is_valid_index(final_x, final_y) && labyrinth[final_x][final_y] != 'A') {
-        full_path += path[final_x][final_y];
-        // Dependeing upon the direction, adjust the index. 
-        // 'U' means we came from the down, so go down
-        if (path[final_x][final_y] == 'U') {
-            final_x += 1; 
-        } else if (path[final_x][final_y] == 'D') {
-            final_x -= 1; 
-        } else if (path[final_x][final_y] == 'L') {
-            final_y += 1;
-        } else {
-            final_y -= 1;
-        }
     }
-    // reverse the string as we came from the last
-    reverse(full_path.begin(), full_path.end());
-    cout << "YES\n" << full_path;
-    return 0;       
+    cout<<steps<<endl;
+    x = en.F,y = en.S;
+    while( x!= st.F or y!=st.S){
+        cout<<dd[ dir[x][y] ];
+
+        auto v = parent[x][y];
+        x = v.F;
+        y = v.S;
+
+    }
+
+
+
+
 }

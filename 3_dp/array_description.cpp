@@ -1,78 +1,51 @@
 #include <bits/stdc++.h>
-#define ll long long int
-#define mod 1000000007
-#define INF 1000000000000
 using namespace std;
 
-// function to find number of possible arrays that satisfy
-// the description
-ll getans(vector<ll>& arr, ll N, ll M,
-        vector<vector<ll> >& dp)
-{
-    // Iterate over all indices from 0 to N - 1
-    for (int i = 0; i < N; i++) {
-        if (i == 0) {
-            // If we are at the first index and the value is
-            // unknown
-            if (arr[i] == 0) {
-                // There is only one way to put any value at
-                // the first index
-                for (int val = 1; val <= M; val++)
-                    dp[i][val] = 1;
-            }
-            else {
-                // If we are at the first index and the
-                // value is fixed, there is only one way to
-                // put the value arr[0] at 0th index
-                dp[i][arr[i]] = 1;
-            }
+const int MOD = 1e9 + 7;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    
+    int n, m;
+    cin >> n >> m;
+    
+    vector<int> x(n);
+    for (int i = 0; i < n; i++) {
+        cin >> x[i];
+    }
+    
+    vector<vector<long long>> dp(n, vector<long long>(m + 1, 0));
+    
+    if (x[0] == 0) {
+        for (int v = 1; v <= m; v++) {
+            dp[0][v] = 1;
         }
-        else {
-            // If we are not at the first index and the
-            // value is unknown, then for each val from 1 to
-            // M, the number of ways to put val are equal to
-            // the number of ways we can put val-1, val,
-            // val+1 at the previous index
-            if (arr[i] == 0) {
-                for (int val = 1; val <= M; val++) {
-                    dp[i][val] = (dp[i - 1][val - 1]
-                                + dp[i - 1][val]
-                                + dp[i - 1][val + 1])
-                                % mod;
+    } else {
+        dp[0][x[0]] = 1;
+    }
+    
+    for (int i = 1; i < n; i++) {
+        if (x[i] == 0) {
+            for (int v = 1; v <= m; v++) {
+                for (int prev = max(1, v - 1); prev <= min(m, v + 1); prev++) {
+                    dp[i][v] = (dp[i][v] + dp[i-1][prev]) % MOD;
                 }
             }
-            // If we are not at the first index and the
-            // value is known, then the number of ways to
-            // put arr[i] are equal to the number of ways we
-            // can put arr[i]-1, arr[i], arr[i]+1 at the
-            // previous index
-            else {
-                dp[i][arr[i]] = (dp[i - 1][arr[i] - 1]
-                                + dp[i - 1][arr[i]]
-                                + dp[i - 1][arr[i] + 1]) % mod;
+        } else {
+            int v = x[i];
+            for (int prev = max(1, v - 1); prev <= min(m, v + 1); prev++) {
+                dp[i][v] = (dp[i][v] + dp[i-1][prev]) % MOD;
             }
         }
     }
-
-    // Variable to store the final answer
-    ll ans = 0;
-
-    // Sum the number of ways of putting any value in the
-    // last index to get the final answer
-    for (int val = 1; val <= M; val++) {
-        ans = (ans + dp[N - 1][val]) % mod;
+    
+    long long result = 0;
+    for (int v = 1; v <= m; v++) {
+        result = (result + dp[n-1][v]) % MOD;
     }
-
-    return ans;
-}
-int main()
-{
-    // Sample Input
-    ll N = 3, M = 5;
-    vector<ll> arr = {2, 0, 2};
-
-    // dp[][] array such that dp[i][j] stores the number of
-    // arrays that have arr[i] = j
-    vector<vector<ll> > dp(N, vector<ll>(M + 2, 0));
-    cout << getans(arr, N, M, dp) << endl;
+    
+    cout << result << endl;
+    
+    return 0;
 }
