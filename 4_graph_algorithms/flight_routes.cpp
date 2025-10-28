@@ -6,29 +6,27 @@ Time Complexity: O(m * log(n * k))
 Space Complexity: O(n * k)
 
 Approach:
-We are asked to find the k shortest flight routes from city 1 (Syrjälä) to city n (Metsälä).
-This problem is an extension of Dijkstra’s algorithm.
+This is a variant of Dijkstra’s algorithm where we need the k shortest paths
+from the source (1) to destination (n), allowing repeated nodes in routes.
 
-Standard Dijkstra only finds the single shortest path to each node. 
-To find the k shortest paths:
-- We maintain, for each node, a list of its k smallest distances found so far.
-- A min-heap (priority queue) is used to always explore the path with the smallest distance next.
-- Each time we reach a node, if we have found fewer than k paths for it, we record the distance.
-- If we already have k distances but find a smaller one, we replace the largest.
+We maintain for each node a max-heap of up to k shortest distances found so far.
+We process nodes in increasing order of distance (via a min-heap).
+If a new smaller distance is found, we push it into that node's heap.
+If the heap exceeds k, we remove the largest (keeping only k smallest).
 
-We continue until the priority queue is empty. 
-The list `dist[n]` will contain the k shortest distances from node 1 to node n.
+This avoids sorting every time (unlike a vector-based approach),
+resulting in much faster performance for large graphs.
 
 Key Insights:
-- Each node can be visited multiple times because multiple paths might lead to it with different costs.
-- Using a min-heap ensures we process paths in increasing order of cost.
-- Storing only the k smallest distances per node ensures O(n*k) space.
-- Edge case: Multiple routes may have the same cost — all are considered separately.
+- Standard Dijkstra only tracks one best distance per node; here we track up to k.
+- Using a max-heap per node allows O(log k) insertion/removal.
+- We only store k distances per node → O(n * k) memory.
+- Since k ≤ 10, the algorithm is very efficient.
 
 Edge Cases:
 - Multiple edges between the same nodes.
-- Graphs with cycles (since revisiting nodes is allowed).
-- Large edge weights (up to 1e9), so use long long.
+- Repeated visits to the same node with different costs.
+- Large weights (use long long).
 */
 
 #include <bits/stdc++.h>
@@ -44,54 +42,53 @@ int32_t main() {
     int n, m, k;
     cin >> n >> m >> k;
 
-    // Adjacency list: adj[u] = { {v, cost}, ... }
-    vector<vector<pair<int,int>>> adj(n+1);
+    vector<vector<pair<int,int>>> adj(n + 1);
     for (int i = 0; i < m; i++) {
         int a, b, c;
         cin >> a >> b >> c;
         adj[a].push_back({b, c});
     }
 
-    // dist[i] will store the k smallest distances found to reach node i
-    vector<vector<long long>> dist(n+1);
+    // Max-heaps to store up to k shortest distances per node
+    vector<priority_queue<long long>> dist(n + 1);
 
-    // Min-heap: {currentDistance, node}
+    // Min-heap for Dijkstra: {distance, node}
     priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<pair<long long,int>>> pq;
 
-    // Starting from node 1 with distance 0
     pq.push({0, 1});
-    dist[1].push_back(0);
+    dist[1].push(0);
 
-    // Modified Dijkstra’s algorithm
     while (!pq.empty()) {
         auto [currDist, node] = pq.top();
         pq.pop();
 
-        // Optimization: If we already have k shortest distances and this is larger than the k-th, skip
-        if (dist[node].size() > k && currDist > dist[node].back()) continue;
+        // Skip if this path is not among the k smallest for this node
+        if (dist[node].top() < currDist && (int)dist[node].size() == k)
+            continue;
 
-        // Traverse all outgoing edges from the current node
         for (auto &[next, wt] : adj[node]) {
             long long newDist = currDist + wt;
 
-            // Case 1: Fewer than k distances found for this neighbor
-            if (dist[next].size() < k) {
-                dist[next].push_back(newDist);
+            // If less than k distances stored or this one is smaller than the largest
+            if ((int)dist[next].size() < k || newDist < dist[next].top()) {
+                dist[next].push(newDist);
                 pq.push({newDist, next});
-                sort(dist[next].begin(), dist[next].end());
-            }
-            // Case 2: Replace the largest if a better distance is found
-            else if (newDist < dist[next].back()) {
-                dist[next].push_back(newDist);
-                sort(dist[next].begin(), dist[next].end());
-                dist[next].resize(k); // Keep only k smallest distances
-                pq.push({newDist, next});
+                if ((int)dist[next].size() > k)
+                    dist[next].pop(); // Keep only k smallest distances
             }
         }
     }
 
-    // Output the k shortest distances to node n
-    for (auto d : dist[n]) cout << d << " ";
+    // Collect all distances from max-heap of destination node and sort ascending
+    vector<long long> ans;
+    while (!dist[n].empty()) {
+        ans.push_back(dist[n].top());
+        dist[n].pop();
+    }
+    sort(ans.begin(), ans.end());
+
+    for (auto &d : ans)
+        cout << d << " ";
     cout << "\n";
 
     return 0;
